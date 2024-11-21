@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统 - 学生详情</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <style>
+        .detail-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .info-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
+        }
+        .button-group {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .button-group button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载导航栏 -->
+    <div id="nav-container"></div>
+
+    <div class="container">
+        <div class="detail-container">
+            <h2>学生详情</h2>
+            <div id="studentDetail"></div>
+            <div class="button-group">
+                <button class="btn" onclick="location.href='student-list.html'">返回列表</button>
+                <button class="btn btn-primary" onclick="editStudent()">编辑</button>
+                <button class="btn btn-danger" onclick="deleteStudent()">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        let currentStudentId;
+
+        $(document).ready(function() {
+            // 加载导航栏
+            $('#nav-container').load('common-nav.html', function() {
+                setActiveNav('nav-student');
+            });
+            
+            // 检查登录状态
+            if (!checkLogin()) return;
+            
+            // 加载数据
+            const urlParams = new URLSearchParams(window.location.search);
+            currentStudentId = urlParams.get('id');
+            loadStudentDetail(currentStudentId);
+        });
+
+        function loadStudentDetail(id) {
+            $.get(`http://localhost:8080/api/student/${id}`, function(student) {
+                let html = `
+                    <div class="info-item"><span class="label">学号：</span>${student.studentNo}</div>
+                    <div class="info-item"><span class="label">姓名：</span>${student.name}</div>
+                    <div class="info-item"><span class="label">年龄：</span>${student.age}</div>
+                    <div class="info-item"><span class="label">性别：</span>${student.gender}</div>
+                    <div class="info-item"><span class="label">班级：</span>${student.studentClass ? student.studentClass.className + ' (' + student.studentClass.grade + ')' : '未分配'}</div>
+                    <div class="info-item"><span class="label">电话：</span>${student.phone}</div>
+                    <div class="info-item"><span class="label">创建时间：</span>${student.createTime}</div>
+                    <div class="info-item"><span class="label">更新时间：</span>${student.updateTime}</div>
+                `;
+                $('#studentDetail').html(html);
+            });
+        }
+
+        function editStudent() {
+            location.href = `student-edit.html?id=${currentStudentId}&source=detail`;
+        }
+
+        function deleteStudent() {
+            if (confirm('确定要删除这名学生吗？')) {
+                $.ajax({
+                    url: `http://localhost:8080/api/student/${currentStudentId}`,
+                    type: 'DELETE',
+                    success: function(res) {
+                        if (res.success) {
+                            alert('删除成功');
+                            location.href = 'student-list.html';
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

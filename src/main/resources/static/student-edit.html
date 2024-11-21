@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统 - 编辑学生</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <style>
+        .edit-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-buttons {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .form-buttons button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载导航栏 -->
+    <div id="nav-container"></div>
+
+    <div class="container">
+        <div class="edit-container">
+            <h2 id="pageTitle">编辑学生</h2>
+            <form id="studentForm">
+                <input type="hidden" id="studentId">
+                <div class="form-group">
+                    <label>学号</label>
+                    <input type="text" id="studentNo" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="studentName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>年龄</label>
+                    <input type="number" id="studentAge" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>性别</label>
+                    <select id="studentGender" class="form-control" required>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>班级</label>
+                    <select id="studentClass" class="form-control" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>电话</label>
+                    <input type="tel" id="studentPhone" class="form-control" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn" onclick="goBack()">返回</button>
+                    <button type="button" class="btn btn-primary" onclick="saveStudent()">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 加载导航栏
+            $('#nav-container').load('common-nav.html', function() {
+                setActiveNav('nav-student');
+            });
+            
+            // 检查登录状态
+            if (!checkLogin()) return;
+            
+            // 加载数据
+            loadClasses();
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (id) {
+                $('#pageTitle').text('编辑学生');
+                loadStudent(id);
+            } else {
+                $('#pageTitle').text('添加学生');
+            }
+        });
+
+        function loadClasses() {
+            $.get('http://localhost:8080/api/student/classes', function(data) {
+                let html = '<option value="">请选择班级</option>';
+                data.forEach(function(cls) {
+                    html += `<option value="${cls.id}">${cls.className} (${cls.grade})</option>`;
+                });
+                $('#studentClass').html(html);
+            });
+        }
+
+        function loadStudent(id) {
+            $.get(`http://localhost:8080/api/student/${id}`, function(student) {
+                $('#studentId').val(student.id);
+                $('#studentNo').val(student.studentNo);
+                $('#studentName').val(student.name);
+                $('#studentAge').val(student.age);
+                $('#studentGender').val(student.gender);
+                $('#studentPhone').val(student.phone);
+                $('#studentClass').val(student.classId);
+            });
+        }
+
+        function saveStudent() {
+            // 表单验证
+            if (!$('#studentNo').val()) {
+                alert('请输入学号');
+                return;
+            }
+            if (!$('#studentName').val()) {
+                alert('请输入姓名');
+                return;
+            }
+            if (!$('#studentAge').val()) {
+                alert('请输入年龄');
+                return;
+            }
+            if (!$('#studentClass').val()) {
+                alert('请选择班级');
+                return;
+            }
+            if (!$('#studentPhone').val()) {
+                alert('请输入电话');
+                return;
+            }
+
+            const student = {
+                id: $('#studentId').val() ? parseInt($('#studentId').val()) : null,
+                studentNo: $('#studentNo').val(),
+                name: $('#studentName').val(),
+                age: parseInt($('#studentAge').val()),
+                gender: $('#studentGender').val(),
+                classId: parseInt($('#studentClass').val()),
+                phone: $('#studentPhone').val()
+            };
+
+            $.ajax({
+                url: 'http://localhost:8080/api/student/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(student),
+                success: function(res) {
+                    if (res.success) {
+                        alert('保存成功');
+                        goBack();
+                    } else {
+                        alert(res.message || '保存失败');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('保存失败：' + (xhr.responseText || error));
+                }
+            });
+        }
+
+        function goBack() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const source = urlParams.get('source') || 'list';
+            const id = urlParams.get('id');
+            if (source === 'detail' && id) {
+                location.href = `student-detail.html?id=${id}`;
+            } else {
+                location.href = 'student-list.html';
+            }
+        }
+    </script>
+</body>
+</html> 

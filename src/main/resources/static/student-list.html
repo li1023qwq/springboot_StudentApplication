@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统 - 学生列表</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .welcome {
+            color: #666;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            width: 200px;
+        }
+        .operation-col {
+            width: 200px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 4px;
+        }
+        .btn-group .btn {
+            padding: 4px 8px;
+            font-size: 14px;
+        }
+        .btn-danger {
+            background-color: #ff4d4f;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #ff7875;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 500px;
+        }
+
+        .form-buttons {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .form-buttons button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-container"></div>
+
+    <div class="container">
+        <div class="search-box">
+            <input type="text" class="form-control" id="searchInput" placeholder="输入学号或姓名搜索">
+            <select class="form-control" id="classFilter">
+                <option value="">所有班级</option>
+            </select>
+            <button class="btn btn-primary" onclick="searchStudents()">搜索</button>
+            <button class="btn btn-primary" onclick="location.href='student-edit.html'">添加学生</button>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>学号</th>
+                    <th>姓名</th>
+                    <th>年龄</th>
+                    <th>性别</th>
+                    <th>班级</th>
+                    <th>联系电话</th>
+                    <th class="operation-col">操作</th>
+                </tr>
+            </thead>
+            <tbody id="studentList"></tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="studentModal" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modalTitle">添加学生</h3>
+            <form id="studentForm">
+                <input type="hidden" id="studentId">
+                <div class="form-group">
+                    <label>学号</label>
+                    <input type="text" id="studentNo" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="studentName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>年龄</label>
+                    <input type="number" id="studentAge" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>性别</label>
+                    <select id="studentGender" class="form-control" required>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>班级</label>
+                    <select id="studentClass" class="form-control" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>电话</label>
+                    <input type="tel" id="studentPhone" class="form-control" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-primary" onclick="saveStudent()">保存</button>
+                    <button type="button" class="btn" onclick="closeModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#nav-container').load('common-nav.html', function() {
+                setActiveNav('nav-student');
+            });
+            
+            if (!checkLogin()) return;
+            
+            loadClasses();
+            loadStudents();
+        });
+
+        function loadClasses() {
+            $.get('http://localhost:8080/api/student/classes', function(data) {
+                let html = '<option value="">所有班级</option>';
+                data.forEach(function(cls) {
+                    html += `<option value="${cls.id}">${cls.className} (${cls.grade})</option>`;
+                });
+                $('#classFilter').html(html);
+            });
+        }
+
+        function loadStudents() {
+            $.get('http://localhost:8080/api/student/list', function(data) {
+                let html = '';
+                data.forEach(function(student) {
+                    html += `
+                        <tr>
+                            <td>${student.studentNo}</td>
+                            <td>${student.name}</td>
+                            <td>${student.age}</td>
+                            <td>${student.gender}</td>
+                            <td>${student.studentClass ? student.studentClass.className + ' (' + student.studentClass.grade + ')' : '未分配'}</td>
+                            <td>${student.phone}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" onclick="location.href='student-detail.html?id=${student.id}'">
+                                        详情
+                                    </button>
+                                    <button class="btn btn-primary" onclick="location.href='student-edit.html?id=${student.id}'">
+                                        编辑
+                                    </button>
+                                    <button class="btn btn-danger" onclick="deleteStudent(${student.id})">
+                                        删除
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $('#studentList').html(html);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        }
+
+        function searchStudents() {
+            const keyword = $('#searchInput').val();
+            const classId = $('#classFilter').val();
+            $.get('http://localhost:8080/api/student/list', { 
+                keyword: keyword,
+                classId: classId
+            }, function(data) {
+                updateStudentList(data);
+            });
+        }
+
+        function deleteStudent(id) {
+            if (confirm('确定要删除这名学生吗？')) {
+                $.ajax({
+                    url: `http://localhost:8080/api/student/${id}`,
+                    type: 'DELETE',
+                    success: function(res) {
+                        if (res.success) {
+                            alert('删除成功');
+                            loadStudents();
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateStudentList(data) {
+            let html = '';
+            data.forEach(function(student) {
+                html += `
+                    <tr>
+                        <td>${student.studentNo}</td>
+                        <td>${student.name}</td>
+                        <td>${student.age}</td>
+                        <td>${student.gender}</td>
+                        <td>${student.studentClass ? student.studentClass.className + ' (' + student.studentClass.grade + ')' : '未分配'}</td>
+                        <td>${student.phone}</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="location.href='student-detail.html?id=${student.id}'">
+                                    详情
+                                </button>
+                                <button class="btn btn-primary" onclick="location.href='student-edit.html?id=${student.id}'">
+                                    编辑
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteStudent(${student.id})">
+                                    删除
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#studentList').html(html);
+        }
+
+        function showAddModal() {
+            $('#modalTitle').text('添加学生');
+            $('#studentId').val('');
+            $('#studentForm')[0].reset();
+            loadClassesForModal();
+            $('#studentModal').show();
+        }
+
+        function showEditModal(student) {
+            console.log('Editing student:', student); // 添加调试日志
+            $('#modalTitle').text('编辑学生');
+            $('#studentId').val(student.id);
+            $('#studentNo').val(student.studentNo);
+            $('#studentName').val(student.name);
+            $('#studentAge').val(student.age);
+            $('#studentGender').val(student.gender);
+            $('#studentPhone').val(student.phone);
+            
+            // 加载班级列表并选中当前班级
+            $.get('http://localhost:8080/api/student/classes', function(data) {
+                let html = '<option value="">请选择班级</option>';
+                data.forEach(function(cls) {
+                    html += `<option value="${cls.id}" ${cls.id == student.classId ? 'selected' : ''}>
+                        ${cls.className} (${cls.grade})
+                    </option>`;
+                });
+                $('#studentClass').html(html);
+            });
+            
+            $('#studentModal').show();
+        }
+
+        function loadClassesForModal(selectedClassId) {
+            $.get('http://localhost:8080/api/student/classes', function(data) {
+                let html = '<option value="">请选择班级</option>';
+                data.forEach(function(cls) {
+                    html += `<option value="${cls.id}" ${cls.id == selectedClassId ? 'selected' : ''}>
+                        ${cls.className} (${cls.grade})
+                    </option>`;
+                });
+                $('#studentClass').html(html);
+            });
+        }
+
+        function closeModal() {
+            $('#studentModal').hide();
+            // 清理表单
+            $('#studentId').val('');
+            $('#studentForm')[0].reset();
+            // 清理班级选择
+            $('#studentClass').html('<option value="">请选择班级</option>');
+        }
+
+        // 添加点击模态框外部关闭的功能
+        $(window).click(function(event) {
+            if ($(event.target).is('#studentModal')) {
+                closeModal();
+            }
+        });
+
+        function saveStudent() {
+            // 表单验证
+            if (!$('#studentNo').val()) {
+                alert('请输入学号');
+                return;
+            }
+            if (!$('#studentName').val()) {
+                alert('请输入姓名');
+                return;
+            }
+            if (!$('#studentAge').val()) {
+                alert('请输入年龄');
+                return;
+            }
+            if (!$('#studentClass').val()) {
+                alert('选择班级');
+                return;
+            }
+            if (!$('#studentPhone').val()) {
+                alert('请输入电话');
+                return;
+            }
+
+            const student = {
+                id: $('#studentId').val() ? parseInt($('#studentId').val()) : null,
+                studentNo: $('#studentNo').val(),
+                name: $('#studentName').val(),
+                age: parseInt($('#studentAge').val()),
+                gender: $('#studentGender').val(),
+                classId: parseInt($('#studentClass').val()),
+                phone: $('#studentPhone').val()
+            };
+
+            console.log('Saving student:', student); // 添加调试日志
+
+            $.ajax({
+                url: 'http://localhost:8080/api/student/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(student),
+                success: function(res) {
+                    console.log('Save response:', res); // 添加调试日志
+                    if (res.success) {
+                        alert('保存成功');
+                        closeModal();
+                        loadStudents(); // 重新加载学生列表
+                    } else {
+                        alert(res.message || '保存失败');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Save error:', error); // 添加错误日志
+                    console.error('Response:', xhr.responseText); // 添加响应内容
+                    alert('保存失败：' + (xhr.responseText || error));
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

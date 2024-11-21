@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统 - 登录</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        body {
+            background: linear-gradient(120deg, #3498db, #8e44ad);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        .login-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .error-message {
+            color: #ff4d4f;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 class="login-title">学生管理系统</h2>
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" class="form-control" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" class="form-control" placeholder="请输入密码">
+        </div>
+        <button class="btn btn-primary" style="width: 100%" onclick="login()">登录</button>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+    <script src="js/jquery.min.js"></script>
+    <script>
+        function login() {
+            const username = $('#username').val();
+            const password = $('#password').val();
+            
+            if (!username || !password) {
+                showError('用户名和密码不能为空');
+                return;
+            }
+            
+            console.log('Attempting login with:', username);
+            
+            $.ajax({
+                url: 'http://localhost:8080/api/user/login',
+                type: 'POST',
+                data: {
+                    username: username,
+                    password: password
+                },
+                success: function(res) {
+                    console.log('Login response:', res);
+                    if (res.success) {
+                        localStorage.setItem('username', username);
+                        window.location.href = 'student-list.html';
+                    } else {
+                        showError(res.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Login error:', error);
+                    showError('服务器错误，请稍后重试');
+                }
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = $('#errorMessage');
+            errorDiv.text(message);
+            errorDiv.show();
+            setTimeout(() => errorDiv.fadeOut(), 3000);
+        }
+
+        // 支持回车登录
+        $(document).keypress(function(e) {
+            if(e.which == 13) {
+                login();
+            }
+        });
+    </script>
+</body>
+</html> 

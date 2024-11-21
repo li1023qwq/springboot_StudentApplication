@@ -1,0 +1,12 @@
+
+
+LL      IIIII    1   00000   2222   333333
+LL       III   111  00   00 22  22     3333
+LL       III    11  00   00     222   3333
+LL       III    11  00   00  2222       333
+LLLLLLL IIIII  111   00000  2222222 333333
+
+                              
+:: Student Management System ::
+:: Created by li1023 ::
+:: Spring Boot ${spring-boot.version} :: 

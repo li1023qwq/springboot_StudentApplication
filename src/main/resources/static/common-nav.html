@@ -1,0 +1,68 @@
+<div class="nav-menu">
+    <div class="nav-links">
+        <a href="student-list.html" id="nav-student">学生管理</a>
+        <a href="class-list.html" id="nav-class">班级管理</a>
+    </div>
+    <div class="welcome">
+        欢迎，<span id="nav-username"></span>
+        <button class="btn btn-danger" onclick="logout()">退出登录</button>
+    </div>
+</div>
+
+<style>
+.nav-menu {
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-menu a {
+    padding: 8px 16px;
+    color: #666;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.nav-menu a:hover {
+    background: #f0f0f0;
+}
+
+.nav-menu a.active {
+    background: #1890ff;
+    color: white;
+}
+
+.welcome {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #666;
+}
+
+.welcome button {
+    margin-left: 10px;
+}
+</style>
+
+<script>
+function setActiveNav(id) {
+    $('.nav-menu a').removeClass('active');
+    $(`#${id}`).addClass('active');
+    // 设置用户名
+    const username = localStorage.getItem('username');
+    if (username) {
+        $('#nav-username').text(username);
+    }
+}
+</script> 

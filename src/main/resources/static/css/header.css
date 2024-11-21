@@ -1,0 +1,32 @@
+.page-header {
+    background: linear-gradient(135deg, #1890ff, #69c0ff);
+    color: white;
+    padding: 30px 0;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.page-header .container {
+    background: transparent;
+    box-shadow: none;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: normal;
+}
+
+.page-header .breadcrumb {
+    margin-top: 10px;
+    color: rgba(255,255,255,0.8);
+}
+
+.page-header .breadcrumb a {
+    color: white;
+    text-decoration: none;
+}
+
+.page-content {
+    margin-top: -60px;
+} 

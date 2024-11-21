@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统 - 班级管理</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-menu {
+            margin-bottom: 20px;
+        }
+        .nav-menu a {
+            margin-right: 15px;
+            color: #1890ff;
+            text-decoration: none;
+        }
+        .nav-menu a.active {
+            color: #333;
+            font-weight: bold;
+        }
+        .class-card {
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .student-count {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载导航栏 -->
+    <div id="nav-container"></div>
+
+    <div class="container">
+        <div class="search-box">
+            <input type="text" class="form-control" id="searchInput" placeholder="输入班级名称或年级搜索">
+            <button class="btn btn-primary" onclick="searchClasses()">搜索</button>
+            <button class="btn btn-primary" onclick="location.href='class-edit.html'">添加班级</button>
+        </div>
+        <div id="classList"></div>
+    </div>
+
+    <!-- 添加/编辑班级的模态框 -->
+    <div class="modal" id="classModal" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modalTitle">添加班级</h3>
+            <form id="classForm">
+                <input type="hidden" id="classId">
+                <div class="form-group">
+                    <label>班级名称</label>
+                    <input type="text" id="className" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>年级</label>
+                    <input type="text" id="grade" class="form-control" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn" onclick="closeModal()">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveClass()">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 加载导航栏
+            $('#nav-container').load('common-nav.html', function() {
+                setActiveNav('nav-class');
+            });
+            
+            // 检查登录状态
+            if (!checkLogin()) return;
+            
+            // 加载数据
+            loadClasses();
+        });
+
+        function loadClasses() {
+            $.get('http://localhost:8080/api/class/list', function(data) {
+                let html = '';
+                data.forEach(function(cls) {
+                    html += `
+                        <div class="class-card">
+                            <div class="class-header">
+                                <h3>${cls.className} (${cls.grade})</h3>
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" onclick="location.href='class-edit.html?id=${cls.id}'">
+                                        编辑
+                                    </button>
+                                    <button class="btn btn-danger" onclick="deleteClass(${cls.id})">
+                                        删除
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="student-count">学生人数：${cls.studentCount || 0}</div>
+                        </div>
+                    `;
+                });
+                $('#classList').html(html);
+            });
+        }
+
+        function showAddClassModal() {
+            $('#modalTitle').text('添加班级');
+            $('#classId').val('');
+            $('#classForm')[0].reset();
+            $('#classModal').show();
+        }
+
+        function showEditClassModal(id) {
+            $('#modalTitle').text('编辑班级');
+            $.get(`http://localhost:8080/api/class/${id}`, function(cls) {
+                $('#classId').val(cls.id);
+                $('#className').val(cls.className);
+                $('#grade').val(cls.grade);
+                $('#classModal').show();
+            });
+        }
+
+        function saveClass() {
+            if (!$('#className').val() || !$('#grade').val()) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            const classData = {
+                id: $('#classId').val() ? parseInt($('#classId').val()) : null,
+                className: $('#className').val(),
+                grade: $('#grade').val()
+            };
+
+            $.ajax({
+                url: 'http://localhost:8080/api/class/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(classData),
+                success: function(res) {
+                    if (res.success) {
+                        alert('保存成功');
+                        closeModal();
+                        loadClasses();
+                    } else {
+                        alert(res.message || '保存失败');
+                    }
+                }
+            });
+        }
+
+        function deleteClass(id) {
+            if (confirm('确定要删除这个班级吗？')) {
+                $.ajax({
+                    url: `http://localhost:8080/api/class/${id}`,
+                    type: 'DELETE',
+                    success: function(res) {
+                        if (res.success) {
+                            alert('删除成功');
+                            loadClasses();
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                });
+            }
+        }
+
+        function closeModal() {
+            $('#classModal').hide();
+            $('#classForm')[0].reset();
+        }
+
+        function searchClasses() {
+            const keyword = $('#searchInput').val();
+            $.get('http://localhost:8080/api/class/list', { keyword: keyword }, function(data) {
+                // 重新渲染班级列表
+                loadClasses();
+            });
+        }
+    </script>
+</body>
+</html> 

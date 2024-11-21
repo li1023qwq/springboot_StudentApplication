@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统 - 班级编辑</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <style>
+        .edit-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-buttons {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .form-buttons button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载导航栏 -->
+    <div id="nav-container"></div>
+
+    <div class="container">
+        <div class="edit-container">
+            <h2 id="pageTitle">编辑班级</h2>
+            <form id="classForm">
+                <input type="hidden" id="classId">
+                <div class="form-group">
+                    <label>班级名称</label>
+                    <input type="text" id="className" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>年级</label>
+                    <select id="grade" class="form-control" required>
+                        <option value="">请选择年级</option>
+                        <option value="2021级">2021级</option>
+                        <option value="2022级">2022级</option>
+                        <option value="2023级">2023级</option>
+                        <option value="2024级">2024级</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn" onclick="goBack()">返回</button>
+                    <button type="button" class="btn btn-primary" onclick="saveClass()">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 加载导航栏
+            $('#nav-container').load('common-nav.html', function() {
+                setActiveNav('nav-class');
+            });
+            
+            // 检查登录状态
+            if (!checkLogin()) return;
+            
+            // 加载数据
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (id) {
+                $('#pageTitle').text('编辑班级');
+                loadClass(id);
+            } else {
+                $('#pageTitle').text('添加班级');
+            }
+        });
+
+        function loadClass(id) {
+            $.get(`http://localhost:8080/api/class/${id}`, function(cls) {
+                $('#classId').val(cls.id);
+                $('#className').val(cls.className);
+                $('#grade').val(cls.grade);
+            });
+        }
+
+        function saveClass() {
+            // 表单验证
+            if (!$('#className').val()) {
+                alert('请输入班级名称');
+                return;
+            }
+            if (!$('#grade').val()) {
+                alert('请选择年级');
+                return;
+            }
+
+            const classData = {
+                id: $('#classId').val() ? parseInt($('#classId').val()) : null,
+                className: $('#className').val(),
+                grade: $('#grade').val()
+            };
+
+            $.ajax({
+                url: 'http://localhost:8080/api/class/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(classData),
+                success: function(res) {
+                    if (res.success) {
+                        alert('保存成功');
+                        goBack();
+                    } else {
+                        alert(res.message || '保存失败');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('保存失败：' + (xhr.responseText || error));
+                }
+            });
+        }
+
+        function goBack() {
+            location.href = 'class-list.html';
+        }
+    </script>
+</body>
+</html> 

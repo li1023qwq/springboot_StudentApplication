@@ -3,46 +3,108 @@
 基于 Spring Boot + MyBatis + jQuery 的前后端分离学生管理系统。
 
 ## 项目结构 
-src/main/
-├── java/com/example/
-│ ├── controller/
-│ │ ├── ClassController.java // 班级管理接口
-│ │ ├── StudentController.java // 学生管理接口
-│ │ └── UserController.java // 用户管理接口
-│ ├── entity/
-│ │ ├── Class.java // 班级实体类
-│ │ ├── Student.java // 学生实体类
-│ │ └── User.java // 用户实体类
-│ ├── mapper/
-│ │ ├── ClassMapper.java // 班级数据访问层
-│ │ ├── StudentMapper.java // 学生数据访问层
-│ │ └── UserMapper.java // 用户数据访问层
-│ ├── service/
-│ │ ├── ClassService.java // 班级业务逻辑层
-│ │ ├── StudentService.java // 学生业务逻辑层
-│ │ └── UserService.java // 用户业务逻辑层
-│ └── StudentApplication.java // 应用程序入口
-├── resources/
-│ ├── static/
-│ │ ├── css/
-│ │ │ ├── common.css // 公共样式
-│ │ │ ├── header.css // 头部样式
-│ │ │ └── loading.css // 加载动画样式
-│ │ ├── js/
-│ │ │ ├── common.js // 公共函数
-│ │ │ └── jquery.min.js // jQuery库
-│ │ ├── class-edit.html // 班级编辑页面
-│ │ ├── class-list.html // 班级列表页面
-│ │ ├── common-nav.html // 公共导航栏
-│ │ ├── error.html // 错误页面
-│ │ ├── login.html // 登录页面
-│ │ ├── student-detail.html // 学生详情页面
-│ │ ├── student-edit.html // 学生编辑页面
-│ │ └── student-list.html // 学生列表页面
-│ ├── application.properties // 应用配置文件
-│ ├── banner.txt // 启动Banner
-│ └── db/
-│ └── schema.sql // 数据库脚本
+
+```
+student-management/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── example/
+│   │   │           ├── controller/
+│   │   │           │   ├── ClassController.java    # 班级管理接口
+│   │   │           │   ├── StudentController.java  # 学生管理接口
+│   │   │           │   └── UserController.java     # 用户管理接口
+│   │   │           ├── entity/
+│   │   │           │   ├── Class.java             # 班级实体类
+│   │   │           │   ├── Student.java           # 学生实体类
+│   │   │           │   └── User.java              # 用户实体类
+│   │   │           ├── mapper/
+│   │   │           │   ├── ClassMapper.java       # 班级数据访问层
+│   │   │           │   ├── StudentMapper.java     # 学生数据访问层
+│   │   │           │   └── UserMapper.java        # 用户数据访问层
+│   │   │           ├── service/
+│   │   │           │   ├── ClassService.java      # 班级业务逻辑层
+│   │   │           │   ├── StudentService.java    # 学生业务逻辑层
+│   │   │           │   └── UserService.java       # 用户业务逻辑层
+│   │   │           └── StudentApplication.java     # 应用程序入口
+│   │   └── resources/
+│   │       ├── static/
+│   │       │   ├── css/
+│   │       │   │   ├── common.css                # 公共样式
+│   │       │   │   ├── header.css               # 头部样式
+│   │       │   │   └── loading.css              # 加载动画样式
+│   │       │   ├── js/
+│   │       │   │   ├── common.js                # 公共函数
+│   │       │   │   └── jquery.min.js            # jQuery库
+│   │       │   ├── class-edit.html              # 班级编辑页面
+│   │       │   ├── class-list.html              # 班级列表页面
+│   │       │   ├── common-nav.html              # 公共导航栏
+│   │       │   ├── error.html                   # 错误页面
+│   │       │   ├── login.html                   # 登录页面
+│   │       │   ├── student-detail.html          # 学生详情页面
+│   │       │   ├── student-edit.html            # 学生编辑页面
+│   │       │   └── student-list.html            # 学生列表页面
+│   │       ├── application.properties           # 应用配置文件
+│   │       ├── banner.txt                       # 启动Banner
+│   │       └── db/
+│   │           └── schema.sql                   # 数据库脚本
+└── pom.xml                                      # Maven配置文件
+```
+
+### 项目分层说明
+
+1. **表现层(Controller)**
+   - 处理HTTP请求
+   - 数据校验
+   - 返回JSON响应
+   - 跨域处理
+
+2. **业务层(Service)**
+   - 实现业务逻辑
+   - 事务管理
+   - 数据校验
+   - 异常处理
+
+3. **数据访问层(Mapper)**
+   - 数据库操作接口
+   - SQL语句管理
+   - MyBatis注解配置
+   - 结果映射处理
+
+4. **实体层(Entity)**
+   - 数据库表映射对象
+   - 数据传输对象
+   - 字段验证注解
+   - JSON序列化配置
+
+5. **前端结构**
+   - 页面文件(HTML)
+   - 样式文件(CSS)
+   - 脚本文件(JS)
+   - 静态资源
+
+
+### 技术栈说明
+
+1. **后端技术**
+   - Spring Boot: 应用框架
+   - MyBatis: ORM框架
+   - MySQL: 数据库
+   - Lombok: 简化开发
+
+2. **前端技术**
+   - HTML5: 页面结构
+   - CSS3: 页面样式
+   - JavaScript: 交互逻辑
+   - jQuery: DOM操作
+   - Ajax: 异步请求
+
+3. **开发工具**
+   - IDEA: 开发IDE
+   - Maven: 项目管理
+   - Git: 版本控制
+   - MySQL Workbench: 数据库管理
 
 ## 系统设计
 
